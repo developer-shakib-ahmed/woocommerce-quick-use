@@ -83,3 +83,43 @@ function sitename_hide_point_gateway_for_point_product($gateways)
 }
 
 add_filter('woocommerce_available_payment_gateways', 'sitename_hide_point_gateway_for_point_product', 99, 1);
+
+
+
+/**
+ * Use WooCommerce's Price Suffix filter 
+ * Add "SALE" label to price suffix on product pages for products on sale.
+ */
+add_filter('woocommerce_get_price_suffix', function ($html, $product, $price, $qty) {
+
+  if (is_product() && $product->is_on_sale()) {
+    $html .= ' <span class="label-sale">SALE</span>';
+  }
+
+  return $html;
+}, 99, 4);
+
+
+/**
+ * Add "Save" text before the price on product pages.
+ */
+add_filter('woocommerce_get_price_html', function ($price, $product) {
+
+  if (is_product() && $product->is_on_sale()) {
+
+    $regular_price = (float) $product->get_regular_price();
+    $sale_price    = (float) $product->get_sale_price();
+
+    if ($regular_price > 0 && $sale_price > 0) {
+      $save_amount = $regular_price - $sale_price;
+
+      // Format without decimals
+      $currency_symbol = get_woocommerce_currency_symbol();
+      $save_amount_html = $currency_symbol . number_format($save_amount, 0);
+
+      $price = '<span class="label-save">SAVE ' . $save_amount_html . '</span> ' . $price;
+    }
+  }
+
+  return $price;
+}, 99, 2);
